@@ -13,20 +13,6 @@ $default = array(
 	"content" => "",
 	"created_at" => date( "Y-m-d" )
 );
-$rules1 = array(
-	"title" => "required",
-);
-$rules2 = array(
-	"title" => "required",
-	"content" => "required",
-);
-$messages1 = array(
-	"title" => "title is required",
-);
-$messages2 = array(
-	"title" => "title is required",
-	"content" => "content is required",
-);
 
 // init Art
 
@@ -51,6 +37,12 @@ echo "</pre>";
 
 // validate data
 
+$rules1 = array(
+	"title" => "required",
+);
+$messages1 = array(
+	"title" => "title is required",
+);
 if ( $art->validate( $data, $rules1 ) ) {
 	echo "<p>rules 1 valid</p>";
 } else {
@@ -61,6 +53,14 @@ if ( $art->validate( $data, $rules1 ) ) {
 	echo "</pre>";
 }
 
+$rules2 = array(
+	"title" => "required",
+	"content" => "required",
+);
+$messages2 = array(
+	"title" => "title is required",
+	"content" => "content is required",
+);
 if ( $art->validate( $data, $rules2 ) ) {
 	echo "<p>rules 2 valid</p>";
 } else {
@@ -71,28 +71,68 @@ if ( $art->validate( $data, $rules2 ) ) {
 	echo "</pre>";
 }
 
-$rules_combined = array(
+$rules = array(
 	"email" => array(
 		"required" => true,
 		"email" => true
 	),
 );
-$messages_combined = array(
+$messages = array(
 	"email" => array(
 		"required" => "email is required",
 		"email" => "need true email"
 	),
 );
-if ( !$art->validate( array(), $rules_combined ) ) {
-	$errors = $art->errors( $messages_combined );
+if ( !$art->validate( array(), $rules ) ) {
+	$errors = $art->errors( $messages );
 	echo "<pre>";
 	var_export( $errors );
 	echo "</pre>";
 }
 
-if ( !$art->validate( array( "email" => "johndoe" ), $rules_combined ) ) {
-	$errors = $art->errors( $messages_combined );
+if ( !$art->validate( array( "email" => "johndoe" ), $rules ) ) {
+	$errors = $art->errors( $messages );
 	echo "<pre>";
 	var_export( $errors );
+	echo "</pre>";
+}
+
+// add validation rule
+
+$art->rule( "restrict", function( $data ) {
+	return in_array( $data, array( "john", "doe" ) );
+});
+
+$rules = array(
+	"name" => "restrict"
+);
+$messages = array(
+	"name" => "you are not John Doe"
+);
+if ( !$art->validate( array( "name" => "bob" ), $rules ) ) {
+	echo "<pre>";
+	var_export( $art->errors( $messages ) );
+	echo "</pre>";
+}
+
+// with params
+
+$art->rule( "only", function( $data, $params ) {
+	return in_array( $data, $params );
+});
+
+$rules = array(
+	"name" => array(
+		"only" => array( "bob", "marley" )
+	)
+);
+$messages = array(
+	"name" => array(
+		"only" => "you are not Bob Marley"
+	)
+);
+if ( !$art->validate( array( "name" => "doe" ), $rules ) ) {
+	echo "<pre>";
+	var_export( $art->errors( $messages ) );
 	echo "</pre>";
 }

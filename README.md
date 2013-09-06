@@ -7,11 +7,15 @@ __Art__ (Active Records Tools) is a standalone __php 5.3+__ helper class. It can
 
 ## How to use it
 
-Create a new Art :
+### create a new Art
 
 	$art = new Art();
 
-You can __filter()__ data (for example `$_POST` data).
+### filter 
+
+You can filter data with `filter( ArrayAssoc $data, ArrayAssoc $filter )`
+
+Example
 
 	$post = array(
 		"title" => "test title",
@@ -31,7 +35,7 @@ You can __filter()__ data (for example `$_POST` data).
 		'title' => 'test title',
 	)
 
-If you want to inititalize data with default values, just do
+If you want to inititalize data with default values, just do an `array_merge` before filter
 
 	$data = array_merge( $default, $data )
     $data = $art->filter( $data, $default );
@@ -44,7 +48,9 @@ If you want to inititalize data with default values, just do
 		'created_at' => '2013-09-07',
 	)
 
-And you can __validate()__ data (return *Boolean*) and get __errors()__
+### validate and error messages
+
+And you can validate data with `validate( ArrayAssoc $data, ArrayAssoc $rules )` (return *Boolean*) and get errors messages with `errors( ArrayAssoc $data, ArrayAssoc $messages )` (return *ArrayAssoc*)
 
 	$rules1 = array(
 		"title" => "required",
@@ -90,7 +96,7 @@ And you can __validate()__ data (return *Boolean*) and get __errors()__
 		'content' => 'content is required',
 	)
 
-You can combine rules
+You can __combine rules__ and the associated error messages
 
 	$rules = array(
 		"email" => array(
@@ -127,3 +133,56 @@ You can combine rules
 		'email' => 'need true email',
 	)
 
+### add validation rules
+
+You can __add a rule__ with `rule( String $key, Function $callback )` method. The `$callback` function take 2 arguments: `$value` and `$params` and must return a *Boolean*
+
+	// add validation rule
+
+	$art->rule( "restrict", function( $data ) {
+		return in_array( $data, array( "john", "doe" ) );
+	});
+
+	$rules = array(
+		"name" => "restrict"
+	);
+	$messages = array(
+		"name" => "you are not John Doe"
+	);
+	if ( !$art->validate( array( "name" => "bob" ), $rules ) ) {
+		echo "<pre>";
+		var_export( $art->errors( $messages ) );
+		echo "</pre>";
+	}
+	
+	// result
+	array (
+		'name' => 'you are not John Doe',
+	)
+
+An example with rule __parameter__
+
+	$art->rule( "only", function( $data, $params ) {
+		return in_array( $data, $params );
+	});
+
+	$rules = array(
+		"name" => array(
+			"only" => array( "bob", "marley" )
+		)
+	);
+	$messages = array(
+		"name" => array(
+			"only" => "you are not Bob Marley"
+		)
+	);
+	if ( !$art->validate( array( "name" => "doe" ), $rules ) ) {
+		echo "<pre>";
+		var_export( $art->errors( $messages ) );
+		echo "</pre>";
+	}
+	
+	// result
+	array (
+		'name' => 'you are not Bob Marley',
+	)

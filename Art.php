@@ -4,24 +4,29 @@
 class Art {
 	
 	private $_errors = array();
+
+	private $_rules = array();
 	
 	function __construct( $options = array() ) {
-		// 
+		// init default validation rules
+		$this->_rules[ "required" ] = function( $data, $params ) {
+			return !empty( $data );
+		};
+		$this->_rules[ "email" ] = function( $data, $params ) {
+			return filter_var( $data, FILTER_VALIDATE_EMAIL );
+		};
+		$this->_rules[ "date" ] = function( $data, $params ) {
+			return ( date( "Y-m-d", strtotime( $data ) ) == $data );
+		};
 	}
 
-	public function valide( $data, $rule, $params = array() ) {
-	    switch ( $rule ) {
-			case "required":
-				return !empty( $data );
-			break;
+	public function rule( $rule, $callback ) {
+		$this->_rules[ $rule ] = $callback;
+	}
 
-			case "email":
-				return filter_var( $data, FILTER_VALIDATE_EMAIL );
-			break;
-
-			case "date":
-				return ( date( "Y-m-d", strtotime( $data ) ) == $data );
-			break;
+	public function valide( $data, $rule, $params = false ) {
+		if ( isset( $this->_rules[ $rule ] ) ) {
+			return $this->_rules[ $rule ]( $data, $params );
 		}
 		return true;
 	}
