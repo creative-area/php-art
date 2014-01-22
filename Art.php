@@ -1,9 +1,27 @@
 <?php 
 // Active Records Tools
 
+class Art_Model {
+
+	public $defaults = array();
+
+	public $rules = array();
+
+	public $messages = array();
+
+	private $_data = array();
+
+	private $_valid = false;
+
+	private $_errors = array();
+}
+
 class Art {
 	
 	private $_errors = array();
+
+	// TODO: use to be chainable
+	private $_data = array();
 
 	private static $_rules = array();
 
@@ -99,7 +117,9 @@ class Art {
 		"field_name" => array(
 			"defaults" => "default_value",
 			"rules" => "rule", // String or ArrayAssoc
-			"message" => "error_message" // String or ArrayAssoc
+			"message" => "error_message", // String or ArrayAssoc
+			"custom_key" => "custom_value", // For example: "label" => "field_label"
+			...
 		),
 		...
 	)
@@ -127,13 +147,13 @@ class Art {
 		);
 	}
 
-	public function model( $context_name, $data ) {
+	public function model( $context_name, $data = array() ) {
 		$processed_data = $this->data( $data, self::$_contexts[ $context_name ][ "defaults" ] );
 		$validated = $this->validate( $processed_data, self::$_contexts[ $context_name ][ "rules" ] );
 
 		$model = array(
 			"data" => $processed_data,
-			"validated" => $validated,
+			"valid" => $validated,
 			"errors" => $this->errors( self::$_contexts[ $context_name ][ "messages" ] )
 		);
 

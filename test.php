@@ -80,3 +80,9 @@ echo "<pre>";
 var_export( $model );
 echo "</pre>";
 
+
+$model = $art->model( "context" );
+
+echo "<pre>";
+var_export( $model );
+echo "</pre>";

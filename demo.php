@@ -278,7 +278,7 @@ if ( !$art->validate( array( "email" => "johndoe" ), $rules ) ) {
 
 echo "<h3>add validation rule</h3>";
 
-$art::rule( "restrict", function( $data ) {
+Art::rule( "restrict", function( $data ) {
 	return in_array( $data, array( "john", "doe" ) );
 });
 
@@ -325,7 +325,7 @@ if ( !$art->validate( array( "name" => "bob" ), $rules ) ) {
 
 echo "<h3>add custom validation rule with params</h3>";
 
-$art::rule( "only", function( $data, $params ) {
+Art::rule( "only", function( $data, $params ) {
 	return in_array( $data, $params );
 });
 
