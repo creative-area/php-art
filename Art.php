@@ -5,34 +5,46 @@ class Art {
 	
 	private $_errors = array();
 
-	private $_rules = array();
+	private static $_rules = array();
+
+	private static $_contexts = array();
 	
 	function __construct( $options = array() ) {
 		// init default validation rules
-		$this->_rules[ "required" ] = function( $data, $params ) {
+		self::$_rules[ "required" ] = function( $data, $params ) {
 			return !empty( $data );
 		};
-		$this->_rules[ "email" ] = function( $data, $params ) {
+		self::$_rules[ "email" ] = function( $data, $params ) {
 			return filter_var( $data, FILTER_VALIDATE_EMAIL );
 		};
-		$this->_rules[ "date" ] = function( $data, $params ) {
+		self::$_rules[ "date" ] = function( $data, $params ) {
 			return ( date( "Y-m-d", strtotime( $data ) ) == $data );
 		};
 	}
 
-	public function rule( $rule, $callback ) {
-		$this->_rules[ $rule ] = $callback;
+	public static function rule( $rule, $callback ) {
+		self::$_rules[ $rule ] = $callback;
 	}
 
 	public function valide( $data, $rule, $params = false ) {
-		if ( isset( $this->_rules[ $rule ] ) ) {
-			return $this->_rules[ $rule ]( $data, $params );
+		if ( isset( self::$_rules[ $rule ] ) ) {
+			$fct = self::$_rules[ $rule ];
+			return $fct( $data, $params );
 		}
 		return true;
 	}
 
 	public function filter( $data, $fields ) {
 		return array_intersect_key( $data, $fields );
+	}
+
+	public function defaults( $data, $defaults ) {
+		return array_merge( $defaults, $data );
+	}
+
+	public function data( $data, $defaults ) {
+		// defaults and filter
+		return $this->filter( $this->defaults( $data, $defaults ), $defaults );
 	}
 	
 	public function validate( $data, $rules, $filter = false ) {
@@ -76,5 +88,55 @@ class Art {
 			$errors[ $field ] = $message;
 		}
 		return $errors;
+	}
+
+	/*
+	add a context
+
+	`context( $context_name, $params )`
+	$context_name = "context_key"
+	$params = array(
+		"field_name" => array(
+			"defaults" => "default_value",
+			"rules" => "rule", // String or ArrayAssoc
+			"message" => "error_message" // String or ArrayAssoc
+		),
+		...
+	)
+
+	`context( $context_name, $defaults, $rules, $messages )`
+	$context_name = "context_key"
+	$defaults = array(
+		"field_name" => "default_value",
+		...
+	)
+	$rules = array(
+		"field_name" => "rule", // String or ArrayAssoc
+		...
+	)
+	$messages = array(
+		"field_name" => "error_message", // String or ArrayAssoc
+		...
+	)
+	*/
+	static public function context( $context_name, $defaults, $rules = false, $messages = false ) {
+		self::$_contexts[ $context_name ] = array(
+			"defaults" => $defaults,
+			"rules" => $rules,
+			"messages" => $messages
+		);
+	}
+
+	public function model( $context_name, $data ) {
+		$processed_data = $this->data( $data, self::$_contexts[ $context_name ][ "defaults" ] );
+		$validated = $this->validate( $processed_data, self::$_contexts[ $context_name ][ "rules" ] );
+
+		$model = array(
+			"data" => $processed_data,
+			"validated" => $validated,
+			"errors" => $this->errors( self::$_contexts[ $context_name ][ "messages" ] )
+		);
+
+		return $model;
 	}
 }

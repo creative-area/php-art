@@ -3,7 +3,7 @@ Art
 
 __Art__ (Active Records Tools) is a standalone __php 5.3+__ helper class. It can be used to manipulate simple models.
 
-*version: draft*
+*version: 0.0.1*
 
 ## How to use it
 
@@ -35,10 +35,22 @@ Example
 		'title' => 'test title',
 	)
 
-If you want to inititalize data with default values, just do an `array_merge` before filter
+If you want to inititalize data with default values, use `defaults( ArrayAssoc $data, ArrayAssoc $defaults )` before filter
 
-	$data = array_merge( $default, $data )
-    $data = $art->filter( $data, $default );
+	$data = $art->defaults( $post, $defaults );
+    $data = $art->filter( $data, $defaults );
+    
+	// result
+	array (
+		'line' => 'N',
+		'title' => 'test title',
+		'content' => '',
+		'created_at' => '2013-09-07',
+	)
+
+If you want to both inititalize data with default values and filter data, use `data( ArrayAssoc $data, ArrayAssoc $defaults )` (same result as above)
+
+	$data = $art->data( $post, $defaults );
     
 	// result
 	array (

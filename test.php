@@ -1,138 +1,82 @@
 <?php
 require dirname(__FILE__).'/Art.php';
 
-// data samples
+echo "<h1>php-art tests</h1>";
 
-$post = array(
-	"title" => "test title",
-	"unused_field" => "lorem ipsum"
-);
-$default = array(
-	"line" => "N",
-	"title" => "",
-	"content" => "",
-	"created_at" => date( "Y-m-d" )
-);
-
-// init Art
-
-echo "<h2>php-art tests</h2>";
-
-$art = new Art();
-
-// filter data
-
-$data = $art->filter( $post, $default );
-
-echo "<pre>";
-var_export( $data );
-echo "</pre>";
-
-$data = array_merge( $default, $post );
-$data = $art->filter( $data, $default );
-
-echo "<pre>";
-var_export( $data );
-echo "</pre>";
-
-// validate data
-
-$rules1 = array(
-	"title" => "required",
-);
-$messages1 = array(
-	"title" => "title is required",
-);
-if ( $art->validate( $data, $rules1 ) ) {
-	echo "<p>rules 1 valid</p>";
-} else {
-	$errors = $art->errors( $messages1 );
-	echo "<p>errors with rules 1:</p>";
-	echo "<pre>";
-	var_export( $errors );
-	echo "</pre>";
-}
-
-$rules2 = array(
-	"title" => "required",
-	"content" => "required",
-);
-$messages2 = array(
-	"title" => "title is required",
-	"content" => "content is required",
-);
-if ( $art->validate( $data, $rules2 ) ) {
-	echo "<p>rules 2 valid</p>";
-} else {
-	$errors = $art->errors( $messages2 );
-	echo "<p>errors with rules 2:</p>";
-	echo "<pre>";
-	var_export( $errors );
-	echo "</pre>";
-}
-
-$rules = array(
-	"email" => array(
-		"required" => true,
-		"email" => true
-	),
-);
-$messages = array(
-	"email" => array(
-		"required" => "email is required",
-		"email" => "need true email"
-	),
-);
-if ( !$art->validate( array(), $rules ) ) {
-	$errors = $art->errors( $messages );
-	echo "<pre>";
-	var_export( $errors );
-	echo "</pre>";
-}
-
-if ( !$art->validate( array( "email" => "johndoe" ), $rules ) ) {
-	$errors = $art->errors( $messages );
-	echo "<pre>";
-	var_export( $errors );
-	echo "</pre>";
-}
-
-// add validation rule
-
-$art->rule( "restrict", function( $data ) {
+Art::rule( "restrict", function( $data ) {
 	return in_array( $data, array( "john", "doe" ) );
 });
 
+$art = new Art();
+
+$post = array(
+	"name" => "bob"
+);
+$defaults = array(
+	"name" => "",
+	"email" => "john.doe@mail.com"
+);
 $rules = array(
-	"name" => "restrict"
+	"name" => "restrict",
+	"email" => "required"
 );
 $messages = array(
-	"name" => "you are not John Doe"
+	"name" => "you are not John Doe",
+	"email" => "email?"
 );
-if ( !$art->validate( array( "name" => "bob" ), $rules ) ) {
+
+echo "<pre>";
+echo '$post = ';
+var_export( $post );
+echo "</pre>";
+
+echo "<pre>";
+echo '$defaults = ';
+var_export( $defaults );
+echo "</pre>";
+
+echo "<pre>";
+echo '$rules = ';
+var_export( $rules );
+echo "</pre>";
+
+echo "<pre>";
+echo '$messages = ';
+var_export( $messages );
+echo "</pre>";
+
+
+// without context
+
+echo "<hr>";
+
+// $data = $art->data( $post, $defaults );
+
+if ( $art->validate( $art->data( $post, $defaults ), $rules ) ) {
+	echo "You ARE John Doe!";
+} else {
+	echo "ERROR:";
 	echo "<pre>";
 	var_export( $art->errors( $messages ) );
 	echo "</pre>";
 }
 
-// with params
+// with context
 
-$art->rule( "only", function( $data, $params ) {
-	return in_array( $data, $params );
-});
+echo "<hr>";
 
-$rules = array(
-	"name" => array(
-		"only" => array( "bob", "marley" )
-	)
-);
-$messages = array(
-	"name" => array(
-		"only" => "you are not Bob Marley"
-	)
-);
-if ( !$art->validate( array( "name" => "doe" ), $rules ) ) {
-	echo "<pre>";
-	var_export( $art->errors( $messages ) );
-	echo "</pre>";
-}
+Art::context( "context", $defaults, $rules, $messages );
+
+$model = $art->model( "context", array( "name" => "bob" ) );
+
+echo "<pre>";
+var_export( $model );
+echo "</pre>";
+
+
+$model = $art->model( "context", array( "name" => "doe" ) );
+
+echo "<pre>";
+var_export( $model );
+echo "</pre>";
+
